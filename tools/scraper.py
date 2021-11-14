@@ -7,5 +7,12 @@ driver = webdriver.Chrome(ChromeDriverManager().install())
 driver.get("https://americanliterature.com/author/eleanor-hallowell-abbott/short-story/peace-on-earth-good-will-to-dogs")
 content = driver.page_source
 
-data = BeautifulSoup(content)
-#print(data)
+soup = BeautifulSoup(content)
+
+story_text = ''
+story = soup.find("div", {"class":"jumbotron", "itemtype":"https://schema.org/ShortStory"}).findAll('p')
+print(len(story))
+
+for p in story:
+    story_text += ' ' + ''.join(p.findAll(text = True))
+print(story_text)
