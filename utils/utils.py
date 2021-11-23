@@ -58,3 +58,9 @@ def convert_value2str(arr, round_float=True):
     return o
 
 
+def write_to_file(write_file, text):
+    with open(write_file, "w") as f:
+        f.write(text)
+    
+
+
