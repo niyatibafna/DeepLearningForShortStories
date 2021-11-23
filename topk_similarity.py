@@ -1,5 +1,7 @@
 # Find top-k stories
 from itertools import combinations
+
+from utils.utils import convert_value2str
 from utils.similarity import compute_cosine_similarity
 
 import argparse 
@@ -14,14 +16,6 @@ def get_args():
     parser.add_argument("--output_file", type=str, default="top_k_stories.txt")
     parser.add_argument("--test_mode", type=bool, default=False)
     return parser.parse_args()
-
-
-def convert_value2str(arr, round_float=True):
-    if round_float:
-        o = [str(round(i, 3)) for i in arr]
-    else:
-        o = [str(i) for i in arr]
-    return o
 
 
 def main():

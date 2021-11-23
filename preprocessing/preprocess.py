@@ -7,6 +7,8 @@ import nltk
 import numpy as np
 from nltk.tokenize import sent_tokenize, word_tokenize
 from nltk.stem import WordNetLemmatizer
+# nltk.download("punkt")
+# nltk.download('averaged_perceptron_tagger')
 
 def case_normalization(text):
     '''Lower cases'''
@@ -59,9 +61,11 @@ def preprocess(text):
     # print(text[:300])
     return text
 
+
 def main():
     with open(sys.argv[1], "r") as story_file:
         print(preprocess(story_file.read()))
 
-if __name__=="__main__":
+
+if __name__ == "__main__":
     main()
