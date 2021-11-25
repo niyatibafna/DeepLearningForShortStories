@@ -1,6 +1,6 @@
 import openpyxl
 
-REL_EXCEL_FILE_PATH = '../data/source/4000-Stories-with-sentiment-analysis.xlsx'
+REL_EXCEL_FILE_PATH = 'data/source/4000-Stories-with-sentiment-analysis.xlsx'
 SHEET_NAME = 'Sheet1'
 
 class Stories:
@@ -8,7 +8,7 @@ class Stories:
     Treats xlsx as single source of truth for stories and provides functionality for interacting with it
     """
 
-    def __init__(self) -> None:
+    def __init__(self, REL_EXCEL_FILE_PATH) -> None:
         # load xlsx during initialization only
         self._stories_xlsx = openpyxl.load_workbook(REL_EXCEL_FILE_PATH, data_only=True)
         self._sheet = self._stories_xlsx[SHEET_NAME]
