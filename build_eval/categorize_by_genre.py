@@ -90,7 +90,7 @@ def main(STORY_PATH):
     stories = get_story_list(STORY_PATH)
     genre_buckets = stories_by_genre(stories)
     print(genre_buckets)
-    save_to_file(genre_buckets, OUTFILE="genre_buckets.txt")
+    save_to_file(genre_buckets, OUTFILE="genre_buckets.json")
 
 if __name__=="__main__":
     main("../data/clean/")
