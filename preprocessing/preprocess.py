@@ -33,17 +33,17 @@ def lemmatize(text):
     '''Lemmatization'''
     wn_lemmatizer = WordNetLemmatizer()
     tagged_text = [nltk.pos_tag(sent) for sent in text]
-    text = [_lemmatize(word, tag, wn_lemmatizer) for sent in tagged_text for (word, tag) in sent]
+    text = [[_lemmatize(word, tag, wn_lemmatizer) for (word, tag) in sent] for sent in tagged_text]
     return text
 
 def remove_stopwords(text):
     '''Stop word removal with NLTK list'''
     stop_words = nltk.corpus.stopwords.words('english')
-    text = [word for word in text if word not in stop_words]
+    text = [[word for word in sent if word not in stop_words] for sent in text]
     return text
 
 
-def preprocess(text):
+def preprocess(text, case_normalized=True, tokenized=True, cleaned=True, lemmatized=True, rem_stopwords=True):
     '''Preprocessing pipeline:
     Case normalization
     Sent + word tokenization
@@ -51,13 +51,18 @@ def preprocess(text):
     POS tagging, Lemmatization
     Stopword removal'''
     # print(text[:300])
-    text = case_normalization(text)
-    text = tokenize(text)
-    text = clean(text)
-    text = lemmatize(text)
-    text = remove_stopwords(text)
-    text = " ".join(text)
+    if case_normalized:
+        text = case_normalization(text)
+    if tokenized:
+        text = tokenize(text)
+    if cleaned:
+        text = clean(text)
+    if lemmatized:
+        text = lemmatize(text)
+    if rem_stopwords:
+        text = remove_stopwords(text)
 
+    text = " ".join([word for sent in text for word in sent])
     # print(text[:300])
     return text
 
