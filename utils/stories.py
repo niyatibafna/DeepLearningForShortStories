@@ -1,4 +1,5 @@
 import openpyxl
+import torch
 
 REL_EXCEL_FILE_PATH = 'data/source/4000-Stories-with-sentiment-analysis.xlsx'
 SHEET_NAME = 'Sheet1'
@@ -31,6 +32,24 @@ class Stories:
 
     def get_sent_length_from_id(self, id: int):
         return self._sheet['N' + str(id + 2)].value
+
+    def get_story_from_id(self, id: int):
+        return self._sheet['G' + str(id + 2)].value
+
+
+class StoriesDataset(torch.utils.data.Dataset):
+    """The class to be loaded for `DataLoader`."""
+    def __init__(self, encodings, labels):
+        self.encodings = encodings
+        self.labels = labels
+    
+    def __len__(self):
+        return len(self.labels)
+
+    def __getitem__(self, idx):
+        item = {key: torch.tensor(val[idx]) for key, val in self.encodings.items()}
+        item["labels"] = torch.tensor(self.labels[idx])
+        return item
 
 
 # example usage #

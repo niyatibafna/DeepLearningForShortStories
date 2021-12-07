@@ -1,6 +1,7 @@
 
 import os
 import re
+import pathlib
 
 def preprocess_text(text):
     """Preprocssing text."""
@@ -62,5 +63,15 @@ def write_to_file(write_file, text):
     with open(write_file, "w") as f:
         f.write(text)
     
+    
+def build_dirs(output_dir, logger):
+    """Build hierarchical directories."""
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+    logger.info(f"Create folder for output directory: {output_dir}")
 
+
+def get_output_dir(output_dir, file):
+    """Joint path for output directory."""
+    return pathlib.Path(output_dir,file)
 
