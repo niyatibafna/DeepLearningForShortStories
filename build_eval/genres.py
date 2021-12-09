@@ -6,7 +6,8 @@ from preprocess import *
 
 def is_genre_word(word):
     '''Judges words'''
-    non_genres = {"girl", "male", "story", "stories", "body", "tale", "soft"}
+    non_genres = {"girl", "male", "story", "stories", "body",
+     "tale", "soft"}
     if len(word)<4:
         return False
     if word in non_genres:

@@ -12,7 +12,6 @@ class Representation:
         self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
         self.bertmodel = BertModel.from_pretrained("bert-base-uncased")
 
-
     def preprocess(self, story_text):
         sentences = sent_tokenize(story_text)
         sentences = ["[CLS] " + sentence + " [SEP]" for sentence in sentences]
@@ -35,33 +34,36 @@ class Representation:
 
     def global_mean():
         '''Returns mean of all vectors depending on how story is divided.'''
+        raise NotImplementedError
 
     def k_part_mean(self, k=3):
         '''Returns k-dimensional mean assuming k parts to the story'''
+        raise NotImplementedError
 
     def get_word_based_representation(self, story_text):
         '''Operations are done on word embeddings'''
+        print("word")
         sentences = self.preprocess(story_text)
         last_layer = self.get_last_bert_layer(sentences)
         word_embeddings = last_layer[:, 1:-1, :]
         number_sentences = word_embeddings.size()[0]
         number_words = word_embeddings.size()[1]
+        #Take the mean
         word_embeddings = torch.reshape(word_embeddings, (number_sentences*number_words, -1))
         story_representation = torch.mean(word_embeddings, axis = 0)
         return story_representation
 
-        # for idx in
 
     def get_sentence_based_representation(self, story_text):
         '''Operations are done on sentence embeddings'''
+        print("sentence")
         sentences = self.preprocess(story_text)
         last_layer = self.get_last_bert_layer(sentences)
         sentence_embeddings = last_layer[:, 0, :]
+        #Take the mean
         story_representation = torch.mean(sentence_embeddings, axis = 0)
         return story_representation
 
-    def get_story_vector(self, raw_text):
-        '''Get story vector'''
 
 if __name__ == "__main__":
     rep = Representation()
