@@ -1,5 +1,6 @@
 import openpyxl
 import torch
+import os
 
 REL_EXCEL_FILE_PATH = 'data/source/4000-Stories-with-sentiment-analysis.xlsx'
 SHEET_NAME = 'Sheet1'
@@ -9,10 +10,21 @@ class Stories:
     Treats xlsx as single source of truth for stories and provides functionality for interacting with it
     """
 
-    def __init__(self, REL_EXCEL_FILE_PATH) -> None:
+    def __init__(self, REL_EXCEL_FILE_PATH = None, REL_STORY_PATH = None) -> None:
         # load xlsx during initialization only
-        self._stories_xlsx = openpyxl.load_workbook(REL_EXCEL_FILE_PATH, data_only=True)
-        self._sheet = self._stories_xlsx[SHEET_NAME]
+        if REL_EXCEL_FILE_PATH:
+            self._stories_xlsx = openpyxl.load_workbook(REL_EXCEL_FILE_PATH, data_only=True)
+            self._sheet = self._stories_xlsx[SHEET_NAME]
+        if REL_STORY_PATH:
+            self.stories_dir = REL_STORY_PATH
+
+    def read_all_stories(self):
+        '''Returns text of all stories in given filepath'''
+        if not self.stories_dir:
+            raise ValueError("REL_STORY_PATH not initialized")
+        for fname in os.listdir(self.stories_dir):
+            text = open(self.stories_dir+"/"+fname, "r").read()
+            yield text
 
 
     def get_title_from_id(self, id: int):
@@ -42,7 +54,7 @@ class StoriesDataset(torch.utils.data.Dataset):
     def __init__(self, encodings, labels):
         self.encodings = encodings
         self.labels = labels
-    
+
     def __len__(self):
         return len(self.labels)
 
