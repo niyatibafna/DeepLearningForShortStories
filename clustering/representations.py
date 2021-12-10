@@ -14,8 +14,7 @@ class Representation:
 
     def preprocess(self, story_text):
         sentences = sent_tokenize(story_text)
-        sentences = ["[CLS] " + sentence + " [SEP]" for sentence in sentences]
-        return sentences
+        return sentences[:50]
 
     def get_last_bert_layer(self, sentences):
         '''Returns last BERT layer'''
