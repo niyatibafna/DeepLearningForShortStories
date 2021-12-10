@@ -8,9 +8,9 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 
 class Representation:
 
-    def __init__(self):
-        self.tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
-        self.bertmodel = BertModel.from_pretrained("bert-base-uncased")
+    def __init__(self, bert_model):
+        self.tokenizer = BertTokenizer.from_pretrained(bert_model)
+        self.bertmodel = BertModel.from_pretrained(bert_model)
 
     def preprocess(self, story_text):
         sentences = sent_tokenize(story_text)
@@ -42,7 +42,7 @@ class Representation:
 
     def get_word_based_representation(self, story_text):
         '''Operations are done on word embeddings'''
-        print("word")
+        # print("word")
         sentences = self.preprocess(story_text)
         last_layer = self.get_last_bert_layer(sentences)
         word_embeddings = last_layer[:, 1:-1, :]
@@ -56,14 +56,26 @@ class Representation:
 
     def get_sentence_based_representation(self, story_text):
         '''Operations are done on sentence embeddings'''
-        print("sentence")
+        # print("sentence")
         sentences = self.preprocess(story_text)
+        print("Length of story in sentences: ", len(sentences))
         last_layer = self.get_last_bert_layer(sentences)
         sentence_embeddings = last_layer[:, 0, :]
         #Take the mean
         story_representation = torch.mean(sentence_embeddings, axis = 0)
         return story_representation
 
+    def save_representations(self, rep_file, story_reps):
+        '''Save np array to file'''
+        with open(rep_file, "wb") as rf:
+            np.save(rf, story_reps)
+
+    def load_representations(self, rep_file):
+        '''Load story reps'''
+        with open(rep_file, "rb") as rf:
+            story_reps = np.load(rf)
+
+        return story_reps
 
 if __name__ == "__main__":
     rep = Representation()
