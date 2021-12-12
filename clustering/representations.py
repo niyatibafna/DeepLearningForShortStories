@@ -1,4 +1,15 @@
 #!usr/bin/env python3
+"""Constuct representaiton object for accessing sentence- or word-level representations.
+
+We consider two types of BERT embeddings:
+    1. sentence-level: Representation of [CLS] token with tahn(dense(h)). See reference 1.
+    2. word-level    : Representations form all tokens except for [CLS] and [SEP]
+
+The model runs one mini-batch with shape (num_sentences, max_seq_length) for one story.
+
+Reference:
+    1. BERT's outputs: https://github.com/huggingface/transformers/issues/7540#issuecomment-704155218
+"""
 
 import numpy as np
 from transformers import BertTokenizer, BertModel
@@ -6,8 +17,16 @@ import torch
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 
+s = """There was once a Cat who was so watchful, that a Mouse hardly dared show the tip of his whiskers for fear of being eaten alive.
+
+When the Mice peeped out and saw him in that position, they thought he had been hung up there in punishment for some misdeed.
+
+Just then the Cat let go his hold, and before the Mice recovered from their surprise, he had made an end of three or four.
+"""
+
 class Representation:
 
+    # to_device("GPU")
     def __init__(self, bert_model):
         self.tokenizer = BertTokenizer.from_pretrained(bert_model)
         self.bertmodel = BertModel.from_pretrained(bert_model)
@@ -20,7 +39,8 @@ class Representation:
         '''Returns last BERT layer'''
         inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt")
         outputs = self.bertmodel(**inputs)
-        return outputs[0]
+        # print(outputs)
+        return outputs
 
     def get_word_embeddings(self, last_layer):
         '''Returns BERT contextual word embedding'''
@@ -29,7 +49,6 @@ class Representation:
     def get_sentence_embedding(self, last_layer):
         '''Returns BERT sentence embedding'''
         return last_layer[:, 0, :]
-
 
     def global_mean():
         '''Returns mean of all vectors depending on how story is divided.'''
@@ -43,15 +62,13 @@ class Representation:
         '''Operations are done on word embeddings'''
         # print("word")
         sentences = self.preprocess(story_text)
-        last_layer = self.get_last_bert_layer(sentences)
+        # `last_hidden_states`: (num_sentences, max_length, dims)
+        last_layer = self.get_last_bert_layer(sentences)["last_hidden_state"]
+        # (num_sentences, max_length-2, dims)
         word_embeddings = last_layer[:, 1:-1, :]
-        number_sentences = word_embeddings.size()[0]
-        number_words = word_embeddings.size()[1]
-        #Take the mean
-        word_embeddings = torch.reshape(word_embeddings, (number_sentences*number_words, -1))
-        story_representation = torch.mean(word_embeddings, axis = 0)
+        # Take the mean over axis 0 and 1.
+        story_representation = word_embeddings.mean(word_embeddings, axis=[0,1])
         return story_representation
-
 
     def get_sentence_based_representation(self, story_text):
         '''Operations are done on sentence embeddings'''
@@ -59,27 +76,28 @@ class Representation:
         sentences = self.preprocess(story_text)
         print("Length of story in sentences: ", len(sentences))
         last_layer = self.get_last_bert_layer(sentences)
-        sentence_embeddings = last_layer[:, 0, :]
-        #Take the mean
+        # See reference 1
+        sentence_embeddings = last_layer["pooler_output"]
+        # Take the mean
         story_representation = torch.mean(sentence_embeddings, axis = 0)
         return story_representation
-
+        
     def save_representations(self, rep_file, story_reps):
         '''Save np array to file'''
         with open(rep_file, "wb") as rf:
             np.save(rf, story_reps)
 
     def load_representations(self, rep_file):
-        '''Load story reps'''
+        '''Load story representation file'''
         with open(rep_file, "rb") as rf:
             story_reps = np.load(rf)
 
         return story_reps
 
 if __name__ == "__main__":
-    rep = Representation()
-    story = "There was a cat. The cat liked food. The cat drank milk."
-    # a = rep.get_sentence_based_representation(story)
-    b = rep.get_word_based_representation(story)
-    # print(a.size())
-    print(b.size())
+    rep = Representation("google/bert_uncased_L-2_H-128_A-2")
+    #story = "There was a cat. The cat liked food. The cat drank milk."
+    # a = rep.get_sentence_based_representation(s)
+    # b = rep.get_word_based_representation(s)
+    #print(a.size())
+    # print(b.size())
