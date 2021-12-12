@@ -10,27 +10,36 @@ The model runs one mini-batch with shape (num_sentences, max_seq_length) for one
 Reference:
     1. BERT's outputs: https://github.com/huggingface/transformers/issues/7540#issuecomment-704155218
 """
+import os
 import numpy as np
 from transformers import BertTokenizer, BertModel
 import torch
 import nltk
+# nltk.download("punkt")
 from nltk.tokenize import sent_tokenize, word_tokenize
 
 
 class Representation:
 
-    # to_device("GPU")
-    def __init__(self, bert_model):
+    def __init__(self, bert_model, gpu_id=None):
         self.tokenizer = BertTokenizer.from_pretrained(bert_model)
         self.bertmodel = BertModel.from_pretrained(bert_model)
+        self.gpu_id = gpu_id        
+        
+        # Specify GPU device 
+        if self.gpu_id is not None:
+            self.bertmodel.to(torch.device(f"cuda:{gpu_id}"))
 
     def preprocess(self, story_text):
-        sentences = sent_tokenize(story_text)
-        return sentences[:50]
+        sentences = sent_tokenize(story_text)[:100]
+        return sentences
 
     def get_last_bert_layer(self, sentences):
         '''Returns last BERT layer'''
         inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt")
+        # print(inputs["input_ids"].shape)
+        if self.gpu_id is not None:
+            inputs.to(torch.device(self.gpu_id))
         outputs = self.bertmodel(**inputs)
         # print(outputs)
         return outputs
@@ -67,12 +76,14 @@ class Representation:
         '''Operations are done on sentence embeddings'''
         # print("sentence")
         sentences = self.preprocess(story_text)
-        print("Length of story in sentences: ", len(sentences))
+        # print(sentences)
+        # print("Length of story in sentences: ", len(sentences))
         last_layer = self.get_last_bert_layer(sentences)
         # See reference 1
         sentence_embeddings = last_layer["pooler_output"]
         # Take the mean
         story_representation = torch.mean(sentence_embeddings, axis = 0)
+        # print(story_representation.shape)
         return story_representation
         
     def save_representations(self, rep_file, story_reps):
@@ -88,9 +99,17 @@ class Representation:
         return story_reps
 
 if __name__ == "__main__":
-    rep = Representation("google/bert_uncased_L-2_H-128_A-2")
+    rep = Representation("google/bert_uncased_L-2_H-128_A-2", gpu_id=1)
     story = "There was a cat. The cat liked food. The cat drank milk."
-    a = rep.get_sentence_based_representation(s)
+    l = list()
+    l.append(story)
+    l = l * 10
+    for i in l:
+        a = rep.get_sentence_based_representation(i)
+        # print("done")
+        max_sent_len = max([len(s) for s in sentences])
+        max_sent_len = max([len(s) for s in sentences])
+        max_sent_len = max([len(s) for s in sentences])
     # b = rep.get_word_based_representation(s)
     print(a.size())
     # print(b.size())

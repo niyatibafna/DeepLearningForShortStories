@@ -48,6 +48,8 @@ class Stories:
     def get_story_from_id(self, id: int):
         return self._sheet['G' + str(id + 2)].value
 
+    def __len__(self):
+        return len(os.listdir(self.stories_dir))
 
 class StoriesDataset(torch.utils.data.Dataset):
     """The class to be loaded for `DataLoader`."""

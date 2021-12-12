@@ -5,10 +5,10 @@ sys.path.append("../")
 from representations import Representation
 from utils.stories import Stories
 from sklearn.cluster import KMeans
+from tqdm import tqdm
 import numpy as np
 import pickle
 import argparse
-
 
 def get_story_representations(rep_object, rep_unit: str, story_limit = None):
     '''Returns all representations as a numpy array
@@ -25,18 +25,17 @@ def get_story_representations(rep_object, rep_unit: str, story_limit = None):
     else:
         raise ValueError("Invalid rep_unit: must be either 'sentence' or 'word'.")
 
-
     story_reps = list()
     idx = 0
-    for story in stories.read_all_stories():
-        story_rep = rep_method(story).detach().numpy()
-        # print("Got rep!")
+    total = len(stories) if story_limit is None else story_limit
+    for story in tqdm(stories.read_all_stories(), total=total):
+        story_rep = rep_method(story).detach().cpu().numpy()
         story_reps.append(story_rep)
-
-        idx += 1
+        
+        # print("Got rep!")
         if idx == story_limit:
             break
-
+        idx+=1
     return np.asarray(story_reps)
 
 def kmeans(story_reps, n_clusters = 10):
@@ -57,8 +56,15 @@ def load_model(model_file):
         kmeans_obj = pickle.load(f)
     return kmeans_obj
 
-def main(bert_model, existing_rep_file_path = None, rep_unit = "sentence", rep_file_path = None, num_clusters = 10, story_limit = None, model_file_path = None):
-    rep_object = Representation(bert_model)
+def main(bert_model,
+         existing_rep_file_path=None,
+         rep_unit="sentence",
+         rep_file_path=None,
+         num_clusters=10,
+         story_limit=None,
+         model_file_path=None,
+         gpu_id=None):
+    rep_object = Representation(bert_model, gpu_id=gpu_id)
     if existing_rep_file_path:
         story_reps = rep_object.load_representations(existing_rep_file_path)
     else:
@@ -73,15 +79,29 @@ def main(bert_model, existing_rep_file_path = None, rep_unit = "sentence", rep_f
     if model_file_path:
         save_model(model_file_path, kmeans_obj)
 
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run KMeans clustering on story representations")
     parser.add_argument("--bert_model", type=str, default="bert-base-uncased", help = "BERT model name")
     parser.add_argument("--existing_rep_file_path", type=str, default=None, help = "File path to existing representations")
     parser.add_argument("--rep_unit", type=str, default="sentence", help = "Must be ``sentence'' or ``word''.")
-    parser.add_argument("--rep_file_path", type=str, default="../outputs/clustering/story_reps.npy", help = "File path for saving extracted representations")
+    parser.add_argument("--rep_file_path", type=str, default="../outputs/clustering/kmeans_model.pkl", help = "File path for saving extracted representations")
     parser.add_argument("--num_clusters", type=int, default=10, help = "Number of clusters for KMeans")
     parser.add_argument("--story_limit", type=int, default=None, help = "Number of stories to be clustered, from the top")
     parser.add_argument("--model_file_path", type=str, default="../outputs/clustering/kmeans.pkl", help = "File path for saving trained KMeans model")
-
+    parser.add_argument("--gpu_id", type=int, default=None, help="Specify which GPU to use.")    
     args = parser.parse_args()
-    main(args.bert_model, args.existing_rep_file_path, args.rep_unit, args.rep_file_path, args.num_clusters, args.story_limit, args.model_file_path)
+    
+    # Create rep
+    rep_file_dir = "/".join(args.rep_file_path.split("/")[:-1])
+    if not os.path.exists(rep_file_dir):
+        os.makedirs(rep_file_dir)
+    
+    main(bert_model=args.bert_model,
+         existing_rep_file_path=args.existing_rep_file_path,
+         rep_unit=args.rep_unit,
+         rep_file_path=args.rep_file_path,
+         num_clusters=args.num_clusters,
+         story_limit=args.story_limit,
+         model_file_path=args.model_file_path,
+         gpu_id=args.gpu_id)
