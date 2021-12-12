@@ -10,19 +10,12 @@ The model runs one mini-batch with shape (num_sentences, max_seq_length) for one
 Reference:
     1. BERT's outputs: https://github.com/huggingface/transformers/issues/7540#issuecomment-704155218
 """
-
 import numpy as np
 from transformers import BertTokenizer, BertModel
 import torch
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
 
-s = """There was once a Cat who was so watchful, that a Mouse hardly dared show the tip of his whiskers for fear of being eaten alive.
-
-When the Mice peeped out and saw him in that position, they thought he had been hung up there in punishment for some misdeed.
-
-Just then the Cat let go his hold, and before the Mice recovered from their surprise, he had made an end of three or four.
-"""
 
 class Representation:
 
@@ -96,8 +89,8 @@ class Representation:
 
 if __name__ == "__main__":
     rep = Representation("google/bert_uncased_L-2_H-128_A-2")
-    #story = "There was a cat. The cat liked food. The cat drank milk."
-    # a = rep.get_sentence_based_representation(s)
+    story = "There was a cat. The cat liked food. The cat drank milk."
+    a = rep.get_sentence_based_representation(s)
     # b = rep.get_word_based_representation(s)
-    #print(a.size())
+    print(a.size())
     # print(b.size())
