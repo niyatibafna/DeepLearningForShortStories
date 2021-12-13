@@ -74,11 +74,11 @@ if __name__ == "__main__":
     parser.add_argument("--num_sentence", type=int, default=150, help="number of sentences for stroy.")
     parser.add_argument("--max_sent_length", type=int, default=128, help="Maximum length of sentence.")
 
-    parser.add_argument("--output_dir", type=str, default="../outputs/clustering", help = "File path for saving extracted representations")
+    parser.add_argument("--output_dir", type=str, default="../outputs/clustering/tmp", help = "File path for saving extracted representations.")
     parser.add_argument("--story_limit", type=int, default=None, help = "Number of stories to be clustered, from the top")
     parser.add_argument("--gpu_id", type=int, default=None, help="Specify which GPU to use.")    
     args = parser.parse_args()
-    
+    print(args)    
     main(bert_model=args.bert_model,
          rep_unit=args.rep_unit,
          num_sentence=args.num_sentence,
