@@ -10,6 +10,7 @@ import numpy as np
 import pickle
 import argparse
 
+
 def get_story_representations(rep_object, rep_unit: str, story_limit = None):
     '''Returns all representations as a numpy array
     of dimensions [num_stories, dims_representation]'''
@@ -41,9 +42,9 @@ def get_story_representations(rep_object, rep_unit: str, story_limit = None):
 
 def main(bert_model,
          rep_unit="sentence",
-         num_sentences=150,
-         max_sent_len=128
-         output_dir=None
+         num_sentence=150,
+         max_sent_len=128,
+         output_dir=None,
          story_limit=None,
          gpu_id=None):
     
@@ -51,8 +52,10 @@ def main(bert_model,
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
     
-    
-    rep_object = Representation(bert_model, gpu_id=gpu_id)
+    rep_object = Representation(bert_model=bert_model,
+                                num_sentence=num_sentence,
+                                max_sent_len=max_sent_len,
+                                gpu_id=gpu_id)
     story_reps = get_story_representations(rep_object, rep_unit, story_limit)
     
     if output_dir:
@@ -61,7 +64,7 @@ def main(bert_model,
         else:
             save_file = output_dir
         rep_object.save_representations(save_file, story_reps)
-
+        print(f"Saving story representations to: {save_file}")
     
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Save story representations")   
@@ -76,10 +79,10 @@ if __name__ == "__main__":
     parser.add_argument("--gpu_id", type=int, default=None, help="Specify which GPU to use.")    
     args = parser.parse_args()
     
-     main(bert_model=args.bert_model,
-          rep_unit=args.rep_unit,
-          num_sentences=aegs.num_sentences,
-          max_sent_len=args.max_sent_length,
-          output_dir=args.output_dir,
-          story_limit=args.story_limit,
-          gpu_id=args.gpu_id)
+    main(bert_model=args.bert_model,
+         rep_unit=args.rep_unit,
+         num_sentence=args.num_sentence,
+         max_sent_len=args.max_sent_length,
+         output_dir=args.output_dir,
+         story_limit=args.story_limit,
+         gpu_id=args.gpu_id)

@@ -21,9 +21,12 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 
 class Representation:
 
-    def __init__(self, bert_model, gpu_id=None):
+    def __init__(self, bert_model, num_sentence=100, max_sent_len=128, gpu_id=None):
         self.tokenizer = BertTokenizer.from_pretrained(bert_model)
         self.bertmodel = BertModel.from_pretrained(bert_model)
+        
+        self.num_sentence = num_sentence
+        self.max_sent_len = max_sent_len
         self.gpu_id = gpu_id        
         
         # Specify GPU device 
@@ -32,15 +35,13 @@ class Representation:
         self.bertmodel.eval()
 
     def preprocess(self, story_text):
-        sentences = sent_tokenize(story_text)[:100]
-        sentences = [ s[:500] for s in sentences]
-        max_len = max([len(i) for i in sentences])
+        sentences = sent_tokenize(story_text)[:self.num_sentence]
         #print(max_len)
         return sentences
 
     def get_last_bert_layer(self, sentences):
         '''Returns last BERT layer'''
-        inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt",max_length=512)
+        inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt",max_length=self.max_sent_len)
         #print(inputs["input_ids"].shape)
         if self.gpu_id is not None:
             inputs.to(torch.device(self.gpu_id))
