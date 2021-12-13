@@ -29,18 +29,23 @@ class Representation:
         # Specify GPU device 
         if self.gpu_id is not None:
             self.bertmodel.to(torch.device(f"cuda:{gpu_id}"))
+        self.bertmodel.eval()
 
     def preprocess(self, story_text):
         sentences = sent_tokenize(story_text)[:100]
+        sentences = [ s[:500] for s in sentences]
+        max_len = max([len(i) for i in sentences])
+        #print(max_len)
         return sentences
 
     def get_last_bert_layer(self, sentences):
         '''Returns last BERT layer'''
-        inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt")
-        # print(inputs["input_ids"].shape)
+        inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt",max_length=512)
+        #print(inputs["input_ids"].shape)
         if self.gpu_id is not None:
             inputs.to(torch.device(self.gpu_id))
-        outputs = self.bertmodel(**inputs)
+        with torch.no_grad():
+            outputs = self.bertmodel(**inputs)
         # print(outputs)
         return outputs
 
@@ -91,7 +96,8 @@ class Representation:
         with open(rep_file, "wb") as rf:
             np.save(rf, story_reps)
 
-    def load_representations(self, rep_file):
+    @staticmethod
+    def load_representations(rep_file):
         '''Load story representation file'''
         with open(rep_file, "rb") as rf:
             story_reps = np.load(rf)
