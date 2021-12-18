@@ -18,6 +18,13 @@ class Stories:
         if REL_STORY_PATH:
             self.stories_dir = REL_STORY_PATH
 
+
+    def get_all_titles(self):
+        '''Returns list of all story titles in folder'''
+        if not self.stories_dir:
+            raise ValueError("REL_STORY_PATH not initialized")
+        return os.listdir(self.stories_dir)
+
     def read_all_stories(self):
         '''Returns text of all stories in given filepath'''
         if not self.stories_dir:
