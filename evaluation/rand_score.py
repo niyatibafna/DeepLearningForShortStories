@@ -5,8 +5,13 @@ assuming genre buckets as gold labels'''
 import pickle as pkl
 import json
 import argparse
+import sys
+sys.path.append("../")
+from utils.stories import Stories
+from collections import defaultdict
+from math import comb
 
-def get_predicted_cluster_labels(story_ids, kmeans_model_file_path):
+def get_predicted_cluster_labels(kmeans_model_file_path, story_ids):
     '''Use story idx to return predicted label from kmeans object
     Return: dict[story_id]:cluster_id'''
     with open(kmeans_model_file_path, "rb") as f:
@@ -17,8 +22,8 @@ def get_predicted_cluster_labels(story_ids, kmeans_model_file_path):
 def get_labelled_story2idx(gold_clustering, REL_STORY_PATH="../data/raw/"):
     '''Get original idx for each labelled story.'''
 
-    stories = Stories(REL_STORY_PATH)
-    titles = [title for title in stories.read_all_stories()]
+    stories = Stories(REL_STORY_PATH = REL_STORY_PATH)
+    titles = stories.get_all_titles()
     labelled = {t for g, stories in gold_clustering.items() for t in stories}
     labelled_story2idx = {t:titles.index(t) for t in labelled}
     #CHECK FOR UNIQUENESS
@@ -53,13 +58,13 @@ def multilabel_rand_score(gold_clustering, cluster_ids):
         cluster_count = defaultdict(lambda: 0)
         for cidx in pred_cluster_ids:
             cluster_count[cidx] += 1
-        true_positives += sum([len(combinations(same_cluster_count, 2)) for same_cluster_count in cluster_count.values()])
+        true_positives += sum([comb(same_cluster_count, 2) for same_cluster_count in cluster_count.values()])
 
     positives = 0
     total_cluster_count = defaultdict(lambda: 0)
-    for story, cluster_id in cluster_ids:
+    for story, cluster_id in cluster_ids.items():
         total_cluster_count[cluster_id] += 1
-    positives += sum([len(combinations(same_cluster_count, 2)) for same_cluster_count in total_cluster_count.values()])
+    positives += sum([comb(same_cluster_count, 2) for same_cluster_count in total_cluster_count.values()])
 
     false_positives = positives - true_positives
 
@@ -102,7 +107,7 @@ def main(gold_clusters_file_path,
     labelled_story_ids = list(labelled_story2idx.values())
     cluster_ids = get_predicted_cluster_labels(kmeans_model_file_path, labelled_story_ids)
     precision, recall = multilabel_rand_score(gold_clustering, cluster_ids)
-    print("PRECISION: %s \t RECALL: %s", precision, recall)
+    print(f"PRECISION: {precision}, \t RECALL: {recall}")
 
 
 if __name__ == '__main__':
