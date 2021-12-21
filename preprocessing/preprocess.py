@@ -62,9 +62,11 @@ def preprocess(text, case_normalized=True, tokenized=True, cleaned=True, lemmati
     if rem_stopwords:
         text = remove_stopwords(text)
 
-    text = " ".join([word for sent in text for word in sent])
+    # text = " ".join([word for sent in text for word in sent])
     # print(text[:300])
-    return text
+    o = list()
+    [o.extend(s) for s in text]
+    return o
 
 
 def main():
