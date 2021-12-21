@@ -25,14 +25,18 @@ class Stories:
             raise ValueError("REL_STORY_PATH not initialized")
         return os.listdir(self.stories_dir)
 
-    def read_all_stories(self):
+    def read_all_stories(self, return_id=False):
         '''Returns text of all stories in given filepath'''
         if not self.stories_dir:
             raise ValueError("REL_STORY_PATH not initialized")
         for fname in os.listdir(self.stories_dir):
             text = open(self.stories_dir+"/"+fname, "r").read()
-            yield text
 
+            if return_id:
+                text_id = fname.split("_")[0]
+                yield text_id, text
+            else:
+                yield text
 
     def get_title_from_id(self, id: int):
         return self._sheet['D' + str(id + 2)].value
