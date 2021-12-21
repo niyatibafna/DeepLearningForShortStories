@@ -1,4 +1,4 @@
-name: s
+name: story-recom
 channels:
     - defaults
 dependencies:
