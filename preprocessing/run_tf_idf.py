@@ -75,7 +75,8 @@ def main():
     tf_idf_dict = dict()
 
     # Add tf-idf score to dictioanry
-    for text_id, story in tqdm(stories.read_all_stories(return_id=True), total=num_stories):            
+    for fname, story in tqdm(stories.read_all_stories(return_file_name=True), total=num_stories):            
+        text_id = fname.split("_")[0]
         tokens = story.split()
         # term frequency
         token_freq_cnt.update(tokens)
