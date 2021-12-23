@@ -1,14 +1,20 @@
 
 import os
 import re
+import pickle
 import pathlib
+
+def load_object_from_pkl(fname):
+    """Loading object from pkl file."""
+    with open(fname, "rb") as f:
+        data = pickle.load(f)
+    return data
 
 def preprocess_text(text):
     """Preprocssing text."""
     text = text.lower()
     text = re.sub('[^A-Za-z0-9]+', ' ', text)
     return text
-
 
 def collect_sentence(file_lst, sentence_length=512):
     """Collecting sentences

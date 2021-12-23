@@ -1,19 +1,20 @@
-# Export stories into the separated text.
+"""Export stories into the separated text."""
+import sys
+sys.path.append("../")
 import os
 import re
 import argparse
 import pandas as pd
 
 from tqdm import tqdm
-from utils.utils import write_to_file
+from utils.utils import load_object_from_pkl, write_to_file
 from transformers import BertTokenizer
-
 
 def get_args():
     """Parse arguments."""
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--data", type=str, default="data/source/4000_content_only.xlsx")
-    parser.add_argument("--output_dir", type=str, default="data/bert_tokenizer")
+    parser.add_argument("--data", type=str, default="../data/source/4000_content_only.xlsx")
+    parser.add_argument("--output_dir", type=str, default="../data/tmp")
     parser.add_argument("--tokenizer_name", type=str, default=None)
     return parser.parse_args()
     
