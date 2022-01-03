@@ -9,7 +9,6 @@ class Stories:
     """
     Treats xlsx as single source of truth for stories and provides functionality for interacting with it
     """
-
     def __init__(self, REL_EXCEL_FILE_PATH = None, REL_STORY_PATH = None) -> None:
         # load xlsx during initialization only
         if REL_EXCEL_FILE_PATH:
@@ -25,16 +24,15 @@ class Stories:
             raise ValueError("REL_STORY_PATH not initialized")
         return os.listdir(self.stories_dir)
 
-    def read_all_stories(self, return_id=False):
+    def read_all_stories(self, return_file_name=False):
         '''Returns text of all stories in given filepath'''
         if not self.stories_dir:
             raise ValueError("REL_STORY_PATH not initialized")
         for fname in os.listdir(self.stories_dir):
             text = open(self.stories_dir+"/"+fname, "r").read()
 
-            if return_id:
-                text_id = fname.split("_")[0]
-                yield text_id, text
+            if return_file_name:
+                yield fname, text
             else:
                 yield text
 
@@ -61,6 +59,7 @@ class Stories:
 
     def __len__(self):
         return len(os.listdir(self.stories_dir))
+
 
 class StoriesDataset(torch.utils.data.Dataset):
     """The class to be loaded for `DataLoader`."""

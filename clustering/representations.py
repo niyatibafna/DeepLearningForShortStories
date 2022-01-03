@@ -29,14 +29,16 @@ class Representation:
         self.max_sent_len = max_sent_len
         self.gpu_id = gpu_id        
         
-        # Specify GPU device 
+        # Specify GPU device
         if self.gpu_id is not None:
             self.bertmodel.to(torch.device(f"cuda:{gpu_id}"))
         self.bertmodel.eval()
+        
 
     def preprocess(self, story_text):
         sentences = sent_tokenize(story_text)[:self.num_sentence]
         #print(max_len)
+    
         return sentences
 
     def get_last_bert_layer(self, sentences):
@@ -74,6 +76,9 @@ class Representation:
         last_layer = self.get_last_bert_layer(sentences)["last_hidden_state"]
         # (num_sentences, max_length-2, dims)
         word_embeddings = last_layer[:, 1:-1, :]
+
+        (num_sentences, seq_len)
+        [[],[], []]
         # Take the mean over axis 0 and 1.
         story_representation = word_embeddings.mean(word_embeddings, axis=[0,1])
         return story_representation
