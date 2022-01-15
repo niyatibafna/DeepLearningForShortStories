@@ -7,8 +7,10 @@ import argparse
 import pandas as pd
 
 from tqdm import tqdm
+from preprocess import preprocess
 from utils.utils import load_object_from_pkl, write_to_file
 from transformers import BertTokenizer
+
 
 def get_args():
     """Parse arguments."""
@@ -39,7 +41,14 @@ def main():
         story_no = str(row.Index)
         
         if tokenizer_name:
-            story = " ".join(tokenizer.tokenize(row.story))
+            # Return a sequence of tokens
+            preprocessed_text = " ".join(preprocess(text=row.story,
+                                                    case_normalized=True,
+                                                    tokenized=True,
+                                                    cleaned=True,
+                                                    lemmatized=True,
+                                                    rem_stopwords=True))
+            story = " ".join(tokenizer.tokenize(preprocessed_text))
         else:
             story = row.story
 

@@ -1,5 +1,5 @@
 #!/bin/sh
-# Run `get_bert_embeddings.py` script`
+# Run `get_bert_embeddings.py` script on raw story
 
 sent_type="sentence"
 max_sent_length=128
@@ -11,6 +11,7 @@ do
 		--rep_unit $sent_type \
 		--num_sentence $num_sentence \
 		--max_sent_length 128 \
-		--output_dir ../outputs/clustering/base_sent_ns-$num_sentence.ml-$max_sent_length \
+		--output_dir ../outputs/clustering/base_sent_ns-${num_sentence}_ml-$max_sent_length \
+		--use_sentence_preprocess True \
 		--gpu_id 1
 done

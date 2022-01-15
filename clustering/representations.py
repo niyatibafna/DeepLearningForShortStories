@@ -21,10 +21,11 @@ from nltk.tokenize import sent_tokenize, word_tokenize
 
 class Representation:
 
-    def __init__(self, bert_model, num_sentence=100, max_sent_len=128, gpu_id=None):
+    def __init__(self, bert_model, use_sentence_preprocess, num_sentence=100, max_sent_len=128, gpu_id=None):
         self.tokenizer = BertTokenizer.from_pretrained(bert_model)
         self.bertmodel = BertModel.from_pretrained(bert_model)
         
+        self.use_sentence_preprocess = use_sentence_preprocess
         self.num_sentence = num_sentence
         self.max_sent_len = max_sent_len
         self.gpu_id = gpu_id        
@@ -34,16 +35,23 @@ class Representation:
             self.bertmodel.to(torch.device(f"cuda:{gpu_id}"))
         self.bertmodel.eval()
         
-
-    def preprocess(self, story_text):
+    def sentence_preprocess(self, story_text):
+        # List of sentences in Str
         sentences = sent_tokenize(story_text)[:self.num_sentence]
         #print(max_len)
-    
         return sentences
 
     def get_last_bert_layer(self, sentences):
         '''Returns last BERT layer'''
-        inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt",max_length=self.max_sent_len)
+        # If select sentences from the raw story, inputs["input_ids"]==(num_sentences,max_seq_len)
+        # Otherwise, using `truncat_length` story, the shape is (1, length)
+        if self.use_sentence_preprocess:
+            inputs = self.tokenizer(sentences, padding = True, truncation = True, return_tensors = "pt",max_length=self.max_sent_len)
+        else:
+            # We've tokenized the stories in truncated corpus.
+            # We need convert it back to one sentence (str), then tokenize it 
+            sent_str = self.tokenizer.convert_tokens_to_string(sentences.split())
+            inputs = self.tokenizer(sent_str, padding=True, truncation=True, return_tensors="pt", max_length=self.max_sent_len)
         #print(inputs["input_ids"].shape)
         if self.gpu_id is not None:
             inputs.to(torch.device(self.gpu_id))
@@ -71,7 +79,12 @@ class Representation:
     def get_word_based_representation(self, story_text):
         '''Operations are done on word embeddings'''
         # print("word")
-        sentences = self.preprocess(story_text)
+        if self.use_sentence_preprocess:
+            # (num_sentence, max_seq_len)
+            sentences = self.sentence_preprocess(story_text)
+        else:
+            # (1, seq_len)
+            sentences = story_text 
         # `last_hidden_states`: (num_sentences, max_length, dims)
         last_layer = self.get_last_bert_layer(sentences)["last_hidden_state"]
         # (num_sentences, max_length-2, dims)
@@ -86,12 +99,18 @@ class Representation:
     def get_sentence_based_representation(self, story_text):
         '''Operations are done on sentence embeddings'''
         # print("sentence")
-        sentences = self.preprocess(story_text)
-        # print(sentences)
+        if self.use_sentence_preprocess:
+            # (num_sentence, max_seq_len)
+            sentences = self.sentence_preprocess(story_text)
+        else:
+            # (1, seq_len)
+            sentences = story_text
         # print("Length of story in sentences: ", len(sentences))
         last_layer = self.get_last_bert_layer(sentences)
         # See reference 1
-        sentence_embeddings = last_layer["pooler_output"]
+        # If using select `num_sentences` from raw story, then [num_sentences, dims]
+        # using truncated story has shape [1, dims]
+        sentence_embeddings = last_layer["pooler_output"] 
         # Take the mean
         story_representation = torch.mean(sentence_embeddings, axis = 0)
         # print(story_representation.shape)

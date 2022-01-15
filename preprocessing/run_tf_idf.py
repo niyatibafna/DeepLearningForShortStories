@@ -7,6 +7,7 @@ Export:
     1 `tf_idf_dict.pkl`: Nested dictionary with the text id as primary key linking to the inner tf-idf dict.
     2 `bert_tokenizer.vocab`: vocabulary file with the frequency and relative frequency.
 """
+import os
 import sys
 sys.path.append("../")
 from utils.stories import Stories
@@ -23,8 +24,8 @@ import numpy as np
 def get_args():
     """Parse arguments."""
     parser = argparse.ArgumentParser(description="")
-    parser.add_argument("--data_dir", type=str, default="../data/bert_tokenizer")
-    parser.add_argument("--output_dir", type=str, default="")
+    parser.add_argument("--data_dir", type=str, default="../data/bert_tokenizer_all")
+    parser.add_argument("--output_dir", type=str, default="./")
     return parser.parse_args()
 
 
@@ -64,6 +65,11 @@ def compute_tf_idf_np(tokens, doc_lst, num_stories):
 
 def main():
     args = get_args()
+    output_dir = args.output_dir
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+        print(f"Create folder for output directory: {output_dir}")
 
     stories = Stories(REL_STORY_PATH=args.data_dir)
     num_stories = len(stories)
@@ -86,16 +92,16 @@ def main():
         tf_idf_dict[text_id] = dict()
         for tok, score in zip(unique_token, tf_idf_arr):    
             tf_idf_dict[text_id][tok] = score
-    
+         
     # Export nested dict
-    fname = get_output_dir(args.output_dir, "tfidf_dict.pkl")
+    fname = get_output_dir(args.output_dir, "tfidf_dict_all.pkl")
     print(f"Saving file: {fname}")
     with open(fname, "wb") as pfile:
         pickle.dump(tf_idf_dict, pfile, pickle.HIGHEST_PROTOCOL)
 
     # Export voacb
     total_token = sum(token_freq_cnt.values())
-    fname = get_output_dir(args.output_dir, "bert_tokenizer.vocab")
+    fname = get_output_dir(args.output_dir, "bert_tokenizer_all.vocab")
     print(f"Saving file: {fname}")
     with open(fname, "w") as f:
         for tok, freq in token_freq_cnt.most_common():
