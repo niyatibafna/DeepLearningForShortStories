@@ -13,7 +13,7 @@ do
 	python get_bert_embeddings.py \
 		--rep_unit $sent_type \
 		--max_sent_length $seq_len \
-		--data_dir $data \
+		--data_dir ${data_dir}/$data \
 		--output_dir ../outputs/clustering/base_sent_$data \
 		--gpu_id 1
 	fi

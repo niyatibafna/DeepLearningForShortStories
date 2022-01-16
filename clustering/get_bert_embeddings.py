@@ -16,7 +16,6 @@ def get_story_representations(data_dir, rep_object, rep_unit: str, story_limit =
     of dimensions [num_stories, dims_representation]'''
 
     stories = Stories(REL_STORY_PATH = data_dir)
-    stories = Stories(REL_STORY_PATH = "../data/truncat_128_tfidf_mean/")
 
     if rep_unit == "sentence":
         rep_method = rep_object.get_sentence_based_representation
