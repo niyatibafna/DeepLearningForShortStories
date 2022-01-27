@@ -24,8 +24,8 @@ def get_args():
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--model", type=str, default="google/bert_uncased_L-2_H-128_A-2")
     parser.add_argument("--data_dir", type=str, default="data/clean/")
-    parser.add_argument("--dim", type=str, default=128)
-    parser.add_argument("--batch_size", type=str, default=64)
+    parser.add_argument("--dim", type=int, default=128)
+    parser.add_argument("--batch_size", type=int, default=64)
     parser.add_argument("--k", type=int, default=10)
     parser.add_argument("--output_file", type=str, default="outputs/top_k_stories_bert_tiny.txt")
     parser.add_argument("--test_mode", type=bool, default=False)
@@ -78,7 +78,8 @@ def main():
     args = get_args()
 
     # Test data
-    query_data = ["love, romance, flowers", "cars, chase, guns", "magic, enchant, witch", "animals", "Christmas, December, Christ"]
+    # query_data = ["love, romance, flowers", "cars, chase, guns", "magic, enchant, witch", "animals", "Christmas, December, Christ"]
+    query_data = ["thriller", "science fiction" , "fantasy", "children", "romance"]
 
     # Training arguments
     data_dir = args.data_dir

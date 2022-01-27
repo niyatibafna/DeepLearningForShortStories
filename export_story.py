@@ -10,7 +10,7 @@ def get_args():
     """Parse arguments."""
     parser = argparse.ArgumentParser(description="")
     parser.add_argument("--data", type=str, default="4000-Stories-with-sentiment-analysis.xlsx")
-    parser.add_argument("--output_dir", type=str, default="")
+    parser.add_argument("--output_dir", type=str, default="../data/tmp")
     
     return parser.parse_args()
     
