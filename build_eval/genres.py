@@ -16,7 +16,8 @@ def is_genre_word(word):
     return True
 
 def _preprocess(word):
-    return preprocess(word.strip(), lemmatized=False, rem_stopwords=False)
+    # return word
+    return " ".join(preprocess(word.strip(), lemmatized=False, rem_stopwords=False))
 
 def get_literary_movements():
     '''Returns additional "genres"'''
@@ -34,4 +35,4 @@ def get_genres():
 
 if __name__=="__main__":
     genre_words = get_genres()
-    print(genre_words)
+    print(*[g for g in genre_words], sep ="\n")

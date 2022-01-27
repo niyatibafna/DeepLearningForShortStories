@@ -10,6 +10,8 @@ sys.path.append("../")
 from utils.stories import Stories
 from collections import defaultdict
 from math import comb
+import collections
+from itertools import combinations
 
 def get_predicted_cluster_labels(kmeans_model_file_path, story_ids):
     '''Use story idx to return predicted label from kmeans object
@@ -44,56 +46,72 @@ def get_gold_clustering(gold_clusters_file_path):
         gold_clustering = json.load(f)
     return gold_clustering
 
+def gold_judgment(s1, s2, gold_clustering):
+    '''Returns correct judgment of s1, s2'''
+    for genre, story_set in gold_clustering.items():
+        if s1 in story_set and s2 in story_set:
+            return True
+    return False
+
 
 def multilabel_rand_score(gold_clustering, cluster_ids):
     '''Calculates multilabel Rand Score
     gold_clustering: dict[genre_id]:{story_ids},
     cluster_ids: dict[story_id]:cluster_id,
-    labelled_story_ids: list[story_ids]
     Returns multilabel Rand Score
     '''
+    real_positives = 0
+    labelled_story_ids = list(cluster_ids.keys())
+    all_gold_judgments = {s_id:dict() for s_id in labelled_story_ids}
+    for s1, s2 in combinations(labelled_story_ids, 2):
+         judgment = gold_judgment(s1, s2, gold_clustering)
+         all_gold_judgments[s1][s2] = judgment
+         all_gold_judgments[s2][s1] = judgment
+         if judgment:
+             real_positives += 1
+
     true_positives = 0
-    for genre, stories in gold_clustering.items():
-        pred_cluster_ids = [cluster_ids[story_id] for story_id in list(stories)]
-        cluster_count = defaultdict(lambda: 0)
-        for cidx in pred_cluster_ids:
-            cluster_count[cidx] += 1
-        true_positives += sum([comb(same_cluster_count, 2) for same_cluster_count in cluster_count.values()])
+    seen_pairs = defaultdict(lambda: set())
+    clusters = defaultdict(lambda: set())
+    for story, cluster in cluster_ids.items():
+        clusters[cluster].add(story)
+    for cluster, stories in clusters.items():
+        for s1, s2 in combinations(stories, 2):
+            if s1 in seen_pairs[s2] or s2 in seen_pairs[s1]:
+                continue
+            if all_gold_judgments[s1][s2]:
+                true_positives += 1
+            seen_pairs[s1].add(s2)
 
-    positives = 0
-    total_cluster_count = defaultdict(lambda: 0)
-    for story, cluster_id in cluster_ids.items():
-        total_cluster_count[cluster_id] += 1
-    positives += sum([comb(same_cluster_count, 2) for same_cluster_count in total_cluster_count.values()])
 
-    false_positives = positives - true_positives
+    total_cluster_count = collections.Counter(list(cluster_ids.values()))
+    judged_positives = sum([comb(same_cluster_count, 2) for same_cluster_count in total_cluster_count.values()])
 
-    total = sum(list(total_cluster_count.values()))
-    negatives = total - positives
-
-    false_negatives = 0
-    for genre, stories in gold_clustering.items():
-        pred_cluster_ids = [cluster_ids[story_id] for story_id in list(stories)]
-        cluster_count = defaultdict(lambda: 0)
-        for cidx in pred_cluster_ids:
-            cluster_count[cidx] += 1
-        cluster_counts = list(cluster_count.values())
-        assert sum(cluster_counts) == len(stories)
-        n = sum(cluster_counts)
-        cluster_counts_accumulative = list()
-        for idx in range(len(cluster_counts)):
-            n -= cluster_counts[idx]
-            cluster_counts_accumulative.append(n)
-
-        for idx in range(len(cluster_counts)):
-            false_negatives += cluster_counts[idx]*cluster_counts_accumulative[idx]
-
-    true_negatives = negatives - false_negatives
-
-    precision = float(true_positives/positives)
-    recall = float(true_positives/(true_positives+false_negatives))
+    # real_positives = true_positives+false_negatives
+    precision = float(true_positives/judged_positives)
+    recall = float(true_positives/real_positives)
 
     return precision, recall
+    # total = sum(list(total_cluster_count.values()))
+    # negatives = total - positives
+    #
+    # false_negatives = 0
+    # for genre, stories in gold_clustering.items():
+    #     pred_cluster_ids = [cluster_ids[story_id] for story_id in list(stories)]
+    #     cluster_count = collections.Counter(pred_cluster_ids)
+    #     cluster_counts = list(cluster_count.values())
+    #     assert sum(cluster_counts) == len(stories)
+    #     n = sum(cluster_counts)
+    #     cluster_counts_accumulative = list()
+    #     for idx in range(len(cluster_counts)):
+    #         n -= cluster_counts[idx]
+    #         cluster_counts_accumulative.append(n)
+    #
+    #     for idx in range(len(cluster_counts)):
+    #         false_negatives += cluster_counts[idx]*cluster_counts_accumulative[idx]
+    #
+    # true_negatives = negatives - false_negatives
+
 
 
 def main(gold_clusters_file_path,

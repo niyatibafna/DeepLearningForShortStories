@@ -44,12 +44,18 @@ def remove_stopwords(text):
 
 
 def preprocess(text, case_normalized=True, tokenized=True, cleaned=True, lemmatized=True, rem_stopwords=True):
-    '''Preprocessing pipeline:
-    Case normalization
-    Sent + word tokenization
-    Cleaning
-    POS tagging, Lemmatization
-    Stopword removal'''
+    '''Preprocessing pipeline for sequence in string. 
+    
+    Args:
+      text: Str, text.
+      case_normalized: Bool, Case normalization.
+      tokenized: Bool, Sent + word tokenization.
+      cleaned: Bool, Cleaning punctuations.
+      lemmatized: Bool, POS tagging, Lemmatization.
+      rem_stopwords: Bool, Stopword removal.
+    Returns:
+      o: List of tokens, processed text.
+    '''
     # print(text[:300])
     if case_normalized:
         text = case_normalization(text)
@@ -62,9 +68,12 @@ def preprocess(text, case_normalized=True, tokenized=True, cleaned=True, lemmati
     if rem_stopwords:
         text = remove_stopwords(text)
 
-    text = " ".join([word for sent in text for word in sent])
+    # text = " ".join([word for sent in text for word in sent])
     # print(text[:300])
-    return text
+    # To one-d list 
+    o = list()
+    [o.extend(s) for s in text]
+    return o
 
 
 def main():
